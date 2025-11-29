@@ -7,6 +7,7 @@ gen
 # Build files
 build
 .gradle
+bin
 
 # Project specific
 steam_appid.txt
