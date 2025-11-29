@@ -1,3 +1,3 @@
-An example mod for Necesse.
+Necesse insta-mine mod.
 
-Check out the [modding wiki page](https://necessewiki.com/Modding) for more.
+By [zenatron](https://github.com/zenatron).
