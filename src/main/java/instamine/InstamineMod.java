@@ -1,9 +1,12 @@
 package instamine;
 
+import necesse.engine.commands.CommandsManager;
 import necesse.engine.events.loot.ObjectLootTableDropsEvent;
 import necesse.engine.events.loot.TileLootTableDropsEvent;
 import necesse.engine.modLoader.annotations.ModEntry;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
+import necesse.engine.network.packet.PacketChatMessage;
+import necesse.engine.network.server.Server;
 import necesse.entity.mobs.GameDamage;
 import necesse.entity.mobs.Mob;
 import necesse.entity.mobs.itemAttacker.ItemAttackerMob;
@@ -12,7 +15,9 @@ import necesse.inventory.item.ItemCategory;
 import necesse.inventory.item.toolItem.ToolDamageItem;
 import necesse.inventory.item.toolItem.ToolItem;
 import necesse.level.maps.Level;
+import instamine.commands.InstamineToggleCommand;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +31,9 @@ public class InstamineMod {
     private static final int MIN_ANIM_TIME = 1;
     private static final int NO_COOLDOWN = 0;
     private static final float COMBAT_DAMAGE = 1000000f;
-    private static final int EXTENDED_RANGE = 500; // pixels
+    private static final int PIXELS_PER_BLOCK = 32;
+    private static final int DEFAULT_RANGE_BLOCKS = 16;
+    private static final int MAX_RANGE_BLOCKS = 100;
     private static final int ORE_DROP_MULTIPLIER = 10;
     private static final Set<String> SPECIAL_MINABLE_ITEM_IDS;
 
@@ -37,21 +44,122 @@ public class InstamineMod {
         SPECIAL_MINABLE_ITEM_IDS = Collections.unmodifiableSet(ids);
     }
 
+    public enum FeatureToggle {
+        MINING("Instant mining"),
+        RANGE("Extended range"),
+        COMBAT("Combat damage"),
+        ORE("Ore multiplier");
+
+        private final String displayName;
+
+        FeatureToggle(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public String describeWithState() {
+            StringBuilder state = new StringBuilder(InstamineMod.isFeatureEnabled(this) ? "ON" : "OFF");
+            if (this == RANGE) {
+                state.append(" (").append(InstamineMod.formatRangeValue()).append(")");
+            }
+            return getDisplayName() + ": " + state;
+        }
+    }
+
     // All features enabled by default
     public static boolean instamineEnabled = true;
     public static boolean extendedRangeEnabled = true;
+    public static boolean combatBoostEnabled = true;
     public static boolean oreMultiplierEnabled = true;
+    public static int extendedRangePixels = DEFAULT_RANGE_BLOCKS * PIXELS_PER_BLOCK;
 
-    public void init() {
-        System.out.println("=== Instamine Mod Loaded ===");
-        System.out.println("All features enabled:");
-        System.out.println("- Instant mining (999,999 DPS)");
-        System.out.println("- Extended range (500 pixels)");
-        System.out.println("- " + ORE_DROP_MULTIPLIER + "x ore drops");
-    }
-    
     public void initResources() {
         System.out.println("[Zen Instamine] Resources initialized");
+    }
+
+    public void postInit() {
+        CommandsManager.registerServerCommand(new InstamineToggleCommand());
+        CommandsManager.registerClientCommand(new InstamineToggleCommand());
+    }
+
+    public static boolean isFeatureEnabled(FeatureToggle feature) {
+        switch (feature) {
+            case MINING:
+                return instamineEnabled;
+            case RANGE:
+                return extendedRangeEnabled;
+            case COMBAT:
+                return combatBoostEnabled;
+            case ORE:
+                return oreMultiplierEnabled;
+            default:
+                throw new IllegalArgumentException("Unhandled feature: " + feature);
+        }
+    }
+
+    public static void setFeatureEnabled(FeatureToggle feature, boolean enabled) {
+        switch (feature) {
+            case MINING:
+                instamineEnabled = enabled;
+                break;
+            case RANGE:
+                extendedRangeEnabled = enabled;
+                break;
+            case COMBAT:
+                combatBoostEnabled = enabled;
+                break;
+            case ORE:
+                oreMultiplierEnabled = enabled;
+                break;
+            default:
+                throw new IllegalArgumentException("Unhandled feature: " + feature);
+        }
+    }
+
+    public static void setFeaturesEnabled(EnumSet<FeatureToggle> features, boolean enabled) {
+        for (FeatureToggle feature : features) {
+            setFeatureEnabled(feature, enabled);
+        }
+    }
+
+    public static void broadcast(Server server, String message) {
+        if (server != null && message != null && !message.isEmpty()) {
+            server.network.sendToAllClients(new PacketChatMessage("[Instamine] " + message));
+        }
+    }
+
+    public static String formatFeatureStateMessage(FeatureToggle feature, boolean enabled) {
+        StringBuilder message = new StringBuilder(feature.getDisplayName()).append(" ")
+            .append(enabled ? "enabled" : "disabled");
+        if (feature == FeatureToggle.RANGE) {
+            message.append(" (").append(formatRangeValue()).append(")");
+        }
+        return message.toString();
+    }
+
+    public static int getExtendedRangePixels() {
+        return extendedRangePixels;
+    }
+
+    public static int getExtendedRangeBlocks() {
+        return extendedRangePixels / PIXELS_PER_BLOCK;
+    }
+
+    public static int setExtendedRangeBlocks(int blocks) {
+        int clamped = Math.max(0, Math.min(blocks, MAX_RANGE_BLOCKS));
+        extendedRangePixels = clamped * PIXELS_PER_BLOCK;
+        return clamped;
+    }
+
+    public static int getMaxRangeBlocks() {
+        return MAX_RANGE_BLOCKS;
+    }
+
+    public static String formatRangeValue() {
+        return getExtendedRangeBlocks() + " blocks / " + getExtendedRangePixels() + " px";
     }
 
     // Multiplies ore-category drops safely in place.
@@ -155,7 +263,7 @@ public class InstamineMod {
     public static class AttackDamagePatch {
         @Advice.OnMethodExit
         public static void boostDamage(@Advice.Return(readOnly = false) GameDamage damage) {
-            if (instamineEnabled) {
+            if (combatBoostEnabled) {
                 damage = new GameDamage(COMBAT_DAMAGE);
             }
         }
@@ -170,7 +278,7 @@ public class InstamineMod {
         @Advice.OnMethodExit
         public static void extendRange(@Advice.Return(readOnly = false) int range) {
             if (extendedRangeEnabled) {
-                range = EXTENDED_RANGE;
+                range = extendedRangePixels;
             }
         }
     }
@@ -184,7 +292,7 @@ public class InstamineMod {
         @Advice.OnMethodExit
         public static void extendAttackRange(@Advice.Return(readOnly = false) int range) {
             if (extendedRangeEnabled) {
-                range = EXTENDED_RANGE;
+                range = extendedRangePixels;
             }
         }
     }
