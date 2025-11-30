@@ -20,20 +20,12 @@ public final class RangeFeature {
         // Class load hook for annotations.
     }
 
-    private static boolean enabled() {
-        return ModSettings.isFeatureEnabled(FeatureToggle.RANGE);
-    }
-
-    private static int extendedRange() {
-        return ModSettings.getExtendedRangePixels();
-    }
-
     @ModMethodPatch(target = ToolDamageItem.class, name = "getMiningRange", arguments = {InventoryItem.class, ItemAttackerMob.class})
     public static class MiningRangePatch {
         @Advice.OnMethodExit
         public static void extendRange(@Advice.Return(readOnly = false) int range) {
-            if (enabled()) {
-                range = extendedRange();
+            if (ModSettings.isFeatureEnabled(FeatureToggle.RANGE)) {
+                range = ModSettings.getExtendedRangePixels();
             }
         }
     }
@@ -42,8 +34,8 @@ public final class RangeFeature {
     public static class AttackRangePatch {
         @Advice.OnMethodExit
         public static void extendAttackRange(@Advice.Return(readOnly = false) int range) {
-            if (enabled()) {
-                range = extendedRange();
+            if (ModSettings.isFeatureEnabled(FeatureToggle.RANGE)) {
+                range = ModSettings.getExtendedRangePixels();
             }
         }
     }

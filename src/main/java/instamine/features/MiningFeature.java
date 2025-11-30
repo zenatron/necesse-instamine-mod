@@ -21,15 +21,11 @@ public final class MiningFeature {
         // Class load hook for annotations.
     }
 
-    private static boolean enabled() {
-        return ModSettings.isFeatureEnabled(FeatureToggle.MINING);
-    }
-
     @ModMethodPatch(target = ToolDamageItem.class, name = "getToolDps", arguments = {InventoryItem.class, Mob.class})
     public static class ToolDpsPatch {
         @Advice.OnMethodExit
         public static void boostToolDps(@Advice.Return(readOnly = false) int dps) {
-            if (enabled()) {
+            if (ModSettings.isFeatureEnabled(FeatureToggle.MINING)) {
                 dps = ModConstants.Mining.TOOL_DPS;
             }
         }
@@ -39,7 +35,7 @@ public final class MiningFeature {
     public static class ToolHitDamagePatch {
         @Advice.OnMethodExit
         public static void boostHitDamage(@Advice.Return(readOnly = false) int damage) {
-            if (enabled()) {
+            if (ModSettings.isFeatureEnabled(FeatureToggle.MINING)) {
                 damage = ModConstants.Mining.TOOL_HIT_DAMAGE;
             }
         }
@@ -49,7 +45,7 @@ public final class MiningFeature {
     public static class AttackAnimTimePatch {
         @Advice.OnMethodExit
         public static void minimizeAnimTime(@Advice.Return(readOnly = false) int time) {
-            if (enabled()) {
+            if (ModSettings.isFeatureEnabled(FeatureToggle.MINING)) {
                 time = ModConstants.Mining.MIN_ANIM_TIME;
             }
         }
@@ -59,7 +55,7 @@ public final class MiningFeature {
     public static class DamageCooldownPatch {
         @Advice.OnMethodExit
         public static void removeCooldown(@Advice.Return(readOnly = false) int cooldown) {
-            if (enabled()) {
+            if (ModSettings.isFeatureEnabled(FeatureToggle.MINING)) {
                 cooldown = ModConstants.Mining.NO_COOLDOWN;
             }
         }

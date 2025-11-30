@@ -62,7 +62,7 @@ public final class OreFeature {
         }
     }
 
-    private static void multiplyOreDrops(List<InventoryItem> drops) {
+    public static void multiplyOreDrops(List<InventoryItem> drops) {
         if (drops == null || drops.isEmpty()) return;
 
         for (InventoryItem drop : drops) {
