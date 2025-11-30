@@ -1,5 +1,5 @@
 # Instamine Mod for Necesse
-A quality-of-life mod that enables instant mining, extended reach, optional combat boosts, and 10× ore drops in Necesse.
+A QOL mod that enables instant mining, flexible reach values, movement buffs, item magnetism, optional combat boosts, and 10× ore drops in Necesse.
 
 ## Installation
 1. Download the latest `ZenInstamine-X.X.X-X.X.jar` from the releases page
@@ -17,15 +17,21 @@ The compiled mod will be in `build/jar/`
 
 ## Features
 - Instant tile breaking
-- Extended mining range
+- Adjustable mining reach (up to 100 blocks)
+- Toggleable storage-box crafting access radius
+- Configurable movement-speed multiplier (10% – 1000%)
+- Item pickup "magnet" radius control
 - Optional combat damage boost
 - 10× ore, shard, and mineral drops
 
 ## In-Game Controls
 Use the `/instamine` chat command (available to all players):
-- `/instamine toggle <mining|range|combat|ore>` switches a feature
+- `/instamine toggle <mining|range|craft|movement|pickup|combat|ore>` switches a feature
 - `/instamine on|off <feature>` forces a state
-- `/instamine range set <blocks>` adjusts the extended reach (1 block = 32 px, max 100 blocks)
+- `/instamine range set <blocks>` changes mining reach (1 block = 32 px, max 100 blocks)
+- `/instamine craft set <blocks>` adjusts storage crafting range (up to 200 blocks)
+- `/instamine movement set <percent>` sets the movement multiplier (10–1000)
+- `/instamine pickup set <blocks>` sets the pickup radius (1–200 blocks)
 - `/instamine status` shows the current configuration
 
 ## Compatibility
@@ -34,12 +40,12 @@ Use the `/instamine` chat command (available to all players):
 
 ## Technical Details
 This mod uses ByteBuddy method patching to modify:
-- `ToolDamageItem.getToolDps()` - Tool damage per second
-- `ToolDamageItem.getToolHitDamage()` - Actual damage applied
-- `ToolDamageItem.getAttackAnimTime()` - Animation timing
-- `ToolDamageItem.getAttackHandlerDamageCooldown()` - Cooldown between hits
-- `ToolItem.getAttackDamage()` - Combat damage to enemies
-- `Level.onTileLootTableDropped()` / `Level.onObjectLootTableDropped()` - Ore and shard drop counts
+- Tool mining performance (`ToolDamageItem` helpers)
+- Player attack range and damage (`ToolItem`)
+- Storage crafting radius (`CraftingStationContainer`)
+- Player movement speed modifier (`Mob.getSpeedModifier`)
+- Item pickup targeting and streaming range (`PickupEntity`)
+- Ore/shard loot tables (`Level.on*LootTableDropped`)
 
 ## Notes
 - Range values are configured in blocks (`/instamine range set <blocks>`); 1 block equals 32 pixels and values above 100 blocks are clamped.

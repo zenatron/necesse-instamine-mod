@@ -1,7 +1,8 @@
 package instamine.commands;
 
 import instamine.InstamineMod;
-import instamine.InstamineMod.FeatureToggle;
+import instamine.config.ModSettings;
+import instamine.config.ModSettings.FeatureToggle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -24,6 +25,9 @@ public class InstamineToggleCommand extends ModularChatCommand {
         ALL,
         MINING,
         RANGE,
+        CRAFT,
+        MOVEMENT,
+        PICKUP,
         COMBAT,
         ORE;
 
@@ -36,6 +40,12 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     return Collections.singletonList(FeatureToggle.MINING);
                 case RANGE:
                     return Collections.singletonList(FeatureToggle.RANGE);
+                case CRAFT:
+                    return Collections.singletonList(FeatureToggle.CRAFT);
+                case MOVEMENT:
+                    return Collections.singletonList(FeatureToggle.MOVEMENT);
+                case PICKUP:
+                    return Collections.singletonList(FeatureToggle.PICKUP);
                 case COMBAT:
                     return Collections.singletonList(FeatureToggle.COMBAT);
                 case ORE:
@@ -45,22 +55,6 @@ public class InstamineToggleCommand extends ModularChatCommand {
             }
         }
 
-        public String displayName() {
-            switch (this) {
-                case ALL:
-                    return "All features";
-                case MINING:
-                    return FeatureToggle.MINING.getDisplayName();
-                case RANGE:
-                    return FeatureToggle.RANGE.getDisplayName();
-                case COMBAT:
-                    return FeatureToggle.COMBAT.getDisplayName();
-                case ORE:
-                    return FeatureToggle.ORE.getDisplayName();
-                default:
-                    throw new IllegalArgumentException("Unhandled target: " + this);
-            }
-        }
     }
 
     private enum Mode {
@@ -113,55 +107,101 @@ public class InstamineToggleCommand extends ModularChatCommand {
     public void runModular(Client client, Server server, ServerClient serverClient, Object[] args, String[] errors, CommandLog log) {
         Target target = (Target) args[0];
         Mode mode = Mode.fromString((String) args[1]);
-        int rangeBlocksArg = (Integer) args[2];
-        boolean valueProvided = rangeBlocksArg != Integer.MIN_VALUE;
+        int intArg = (Integer) args[2];
+        boolean valueProvided = intArg != Integer.MIN_VALUE;
 
         if (mode == Mode.STATUS) {
             if (valueProvided) {
-                log.add("[Instamine] Blocks value ignored for status queries.");
+                log.add("[Instamine] Numeric value ignored for status queries.");
             }
             handleStatus(target, log);
             return;
         }
 
         if (mode == Mode.SET) {
-            if (target != Target.RANGE) {
-                log.add("[Instamine] 'set' mode can only be used with the range feature.");
-                return;
-            }
-
             if (!valueProvided) {
-                log.add("[Instamine] Missing blocks value. Usage: /instamine range set <blocks>");
+                log.add("[Instamine] Missing numeric value. Usage: /instamine <feature> set <value>");
                 return;
             }
 
-            int applied = InstamineMod.setExtendedRangeBlocks(rangeBlocksArg);
-            if (applied != rangeBlocksArg) {
-                log.add("[Instamine] Requested range clamped to " + applied + " blocks (max " + InstamineMod.getMaxRangeBlocks() + ")");
+            switch (target) {
+                case RANGE: {
+                    int applied = ModSettings.setExtendedRangeBlocks(intArg);
+                    if (applied != intArg) {
+                        log.add("[Instamine] Requested range clamped to " + applied + " blocks (max " + ModSettings.getMaxRangeBlocks() + ")");
+                    }
+                    String message = "Extended range set to " + ModSettings.formatRangeValue() + " (1 block = 32 px)";
+                    log.add("[Instamine] " + message);
+                    InstamineMod.broadcast(server, message);
+                    break;
+                }
+                case CRAFT: {
+                    int applied = ModSettings.setCraftRangeBlocks(intArg);
+                    if (applied != intArg) {
+                        log.add("[Instamine] Storage crafting range clamped to " + applied + " blocks (allowed " + ModSettings.getMinCraftRangeBlocks() + "-" + ModSettings.getMaxCraftRangeBlocks() + ")");
+                    }
+                    String message = "Storage crafting range set to " + ModSettings.formatCraftRangeValue();
+                    log.add("[Instamine] " + message);
+                    InstamineMod.broadcast(server, message);
+                    break;
+                }
+                case MOVEMENT: {
+                    int applied = ModSettings.setMovementSpeedPercent(intArg);
+                    if (applied != intArg) {
+                        log.add("[Instamine] Movement speed percent clamped to " + applied + "% (allowed " + ModSettings.getMinSpeedPercent() + "-" + ModSettings.getMaxSpeedPercent() + ")");
+                    }
+                    String message = "Movement speed multiplier set to " + ModSettings.formatMovementSpeedValue();
+                    log.add("[Instamine] " + message);
+                    InstamineMod.broadcast(server, message);
+                    break;
+                }
+                case PICKUP: {
+                    int applied = ModSettings.setPickupRangeBlocks(intArg);
+                    if (applied != intArg) {
+                        log.add("[Instamine] Pickup range clamped to " + applied + " blocks (allowed " + ModSettings.getMinPickupRangeBlocks() + "-" + ModSettings.getMaxPickupRangeBlocks() + ")");
+                    }
+                    String message = "Pickup range set to " + ModSettings.formatPickupRangeValue();
+                    log.add("[Instamine] " + message);
+                    InstamineMod.broadcast(server, message);
+                    break;
+                }
+                case ALL:
+                    log.add("[Instamine] 'set' mode is not available for the 'all' target.");
+                    break;
+                default:
+                    log.add("[Instamine] 'set' mode is not supported for this feature.");
+                    break;
             }
-
-            String message = "Extended range set to " + InstamineMod.formatRangeValue();
-            log.add("[Instamine] " + message + " (1 block = 32 px)");
-            InstamineMod.broadcast(server, message);
             return;
         }
 
         if (valueProvided) {
-            if (target != Target.RANGE) {
-                log.add("[Instamine] Blocks value is only applicable when adjusting the range feature.");
-                return;
+            switch (target) {
+                case RANGE:
+                    log.add("[Instamine] Blocks value ignored. Use '/instamine range set <blocks>' to change range.");
+                    break;
+                case CRAFT:
+                    log.add("[Instamine] Blocks value ignored. Use '/instamine craft set <blocks>' to change storage crafting range.");
+                    break;
+                case MOVEMENT:
+                    log.add("[Instamine] Percentage ignored. Use '/instamine movement set <percent>' to change movement speed.");
+                    break;
+                case PICKUP:
+                    log.add("[Instamine] Blocks value ignored. Use '/instamine pickup set <blocks>' to change pickup range.");
+                    break;
+                default:
+                    log.add("[Instamine] Numeric value ignored for this target.");
+                    break;
             }
-
-            log.add("[Instamine] Blocks value ignored. Use '/instamine range set <blocks>' to change range.");
         }
 
         List<FeatureToggle> features = target.toFeatures();
 
         for (FeatureToggle feature : features) {
-            boolean current = InstamineMod.isFeatureEnabled(feature);
+            boolean current = ModSettings.isFeatureEnabled(feature);
             boolean newValue = mode == Mode.ON ? true : mode == Mode.OFF ? false : !current;
-            InstamineMod.setFeatureEnabled(feature, newValue);
-            String message = InstamineMod.formatFeatureStateMessage(feature, newValue);
+            ModSettings.setFeatureEnabled(feature, newValue);
+            String message = ModSettings.formatFeatureStateMessage(feature, newValue);
             log.add("[Instamine] " + message);
             InstamineMod.broadcast(server, message);
         }
@@ -174,7 +214,7 @@ public class InstamineToggleCommand extends ModularChatCommand {
 
         log.add("§#8AADF4[Instamine] Current feature states:");
         for (FeatureToggle feature : features) {
-            log.add("§#8AADF4 - " + feature.describeWithState());
+            log.add("§#8AADF4 - " + ModSettings.describeFeatureState(feature));
         }
     }
 }
