@@ -17,9 +17,17 @@ public final class ModConstants {
     }
 
     public static final class Combat {
-        public static final float DAMAGE = 1_000_000f;
+        public static final int DAMAGE = 1_000_000;
 
         private Combat() {}
+    }
+
+    public static final class Building {
+        public static final int DEFAULT_PERCENT = 400;
+        public static final int MIN_PERCENT = 10;
+        public static final int MAX_PERCENT = 2_000;
+
+        private Building() {}
     }
 
     public static final class Range {

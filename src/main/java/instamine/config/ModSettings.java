@@ -16,6 +16,7 @@ public final class ModSettings {
         MOVEMENT("Movement speed"),
         PICKUP("Pickup range"),
         COMBAT("Combat damage"),
+        BUILD("Building speed"),
         ORE("Ore multiplier");
 
         private final String displayName;
@@ -35,12 +36,14 @@ public final class ModSettings {
     private static boolean movementSpeedEnabled = true;
     private static boolean pickupRangeEnabled = true;
     private static boolean combatBoostEnabled = true;
+    private static boolean buildSpeedEnabled = true;
     private static boolean oreMultiplierEnabled = true;
 
     private static int extendedRangePixels = ModConstants.Range.DEFAULT_BLOCKS * ModConstants.PIXELS_PER_BLOCK;
     private static int craftRangeBlocks = ModConstants.Crafting.DEFAULT_RANGE_BLOCKS;
     private static int movementSpeedPercent = ModConstants.Movement.DEFAULT_PERCENT;
     private static int pickupRangeBlocks = ModConstants.Pickup.DEFAULT_RANGE_BLOCKS;
+    private static int buildSpeedPercent = ModConstants.Building.DEFAULT_PERCENT;
 
     private ModSettings() {}
 
@@ -58,6 +61,8 @@ public final class ModSettings {
                 return pickupRangeEnabled;
             case COMBAT:
                 return combatBoostEnabled;
+            case BUILD:
+                return buildSpeedEnabled;
             case ORE:
                 return oreMultiplierEnabled;
             default:
@@ -85,6 +90,9 @@ public final class ModSettings {
                 break;
             case COMBAT:
                 combatBoostEnabled = enabled;
+                break;
+            case BUILD:
+                buildSpeedEnabled = enabled;
                 break;
             case ORE:
                 oreMultiplierEnabled = enabled;
@@ -171,6 +179,28 @@ public final class ModSettings {
         return clamped;
     }
 
+    public static int getBuildSpeedPercent() {
+        return buildSpeedPercent;
+    }
+
+    public static float getBuildSpeedMultiplier() {
+        return buildSpeedEnabled ? buildSpeedPercent / 100.0f : 1.0f;
+    }
+
+    public static int getMinBuildSpeedPercent() {
+        return ModConstants.Building.MIN_PERCENT;
+    }
+
+    public static int getMaxBuildSpeedPercent() {
+        return ModConstants.Building.MAX_PERCENT;
+    }
+
+    public static int setBuildSpeedPercent(int percent) {
+        int clamped = clamp(percent, ModConstants.Building.MIN_PERCENT, ModConstants.Building.MAX_PERCENT);
+        buildSpeedPercent = clamped;
+        return clamped;
+    }
+
     public static int getPickupRangeBlocks() {
         return pickupRangeBlocks;
     }
@@ -210,6 +240,10 @@ public final class ModSettings {
         return movementSpeedPercent + "% (" + String.format(Locale.ENGLISH, "%.2fx", movementSpeedPercent / 100.0f) + ")";
     }
 
+    public static String formatBuildSpeedValue() {
+        return buildSpeedPercent + "% (" + String.format(Locale.ENGLISH, "%.2fx", buildSpeedPercent / 100.0f) + ")";
+    }
+
     public static String formatPickupRangeValue() {
         return getPickupRangeBlocks() + " blocks / " + Math.round(getPickupRangePixels()) + " px";
     }
@@ -225,6 +259,9 @@ public final class ModSettings {
                 break;
             case MOVEMENT:
                 state.append(" (").append(formatMovementSpeedValue()).append(")");
+                break;
+            case BUILD:
+                state.append(" (").append(formatBuildSpeedValue()).append(")");
                 break;
             case PICKUP:
                 state.append(" (").append(formatPickupRangeValue()).append(")");
@@ -247,6 +284,9 @@ public final class ModSettings {
                 break;
             case MOVEMENT:
                 message.append(" (").append(formatMovementSpeedValue()).append(")");
+                break;
+            case BUILD:
+                message.append(" (").append(formatBuildSpeedValue()).append(")");
                 break;
             case PICKUP:
                 message.append(" (").append(formatPickupRangeValue()).append(")");

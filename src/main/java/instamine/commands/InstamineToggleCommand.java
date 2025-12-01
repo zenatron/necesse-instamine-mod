@@ -29,6 +29,7 @@ public class InstamineToggleCommand extends ModularChatCommand {
         MOVEMENT,
         PICKUP,
         COMBAT,
+        BUILD,
         ORE;
 
         public List<FeatureToggle> toFeatures() {
@@ -48,6 +49,8 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     return Collections.singletonList(FeatureToggle.PICKUP);
                 case COMBAT:
                     return Collections.singletonList(FeatureToggle.COMBAT);
+                case BUILD:
+                    return Collections.singletonList(FeatureToggle.BUILD);
                 case ORE:
                     return Collections.singletonList(FeatureToggle.ORE);
                 default:
@@ -155,6 +158,16 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     InstamineMod.broadcast(server, message);
                     break;
                 }
+                case BUILD: {
+                    int applied = ModSettings.setBuildSpeedPercent(intArg);
+                    if (applied != intArg) {
+                        log.add("[Instamine] Building speed percent clamped to " + applied + "% (allowed " + ModSettings.getMinBuildSpeedPercent() + "-" + ModSettings.getMaxBuildSpeedPercent() + ")");
+                    }
+                    String message = "Building speed multiplier set to " + ModSettings.formatBuildSpeedValue();
+                    log.add("[Instamine] " + message);
+                    InstamineMod.broadcast(server, message);
+                    break;
+                }
                 case PICKUP: {
                     int applied = ModSettings.setPickupRangeBlocks(intArg);
                     if (applied != intArg) {
@@ -185,6 +198,9 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     break;
                 case MOVEMENT:
                     log.add("[Instamine] Percentage ignored. Use '/instamine movement set <percent>' to change movement speed.");
+                    break;
+                case BUILD:
+                    log.add("[Instamine] Percentage ignored. Use '/instamine build set <percent>' to change building speed.");
                     break;
                 case PICKUP:
                     log.add("[Instamine] Blocks value ignored. Use '/instamine pickup set <blocks>' to change pickup range.");

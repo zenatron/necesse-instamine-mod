@@ -1,5 +1,5 @@
 # Instamine Mod for Necesse
-A QOL mod that enables instant mining, flexible reach values, movement buffs, item magnetism, optional combat boosts, and 10× ore drops in Necesse.
+A QOL mod that enables instant mining, flexible reach values, movement and building buffs, item magnetism, optional combat boosts, and 10× ore drops in Necesse.
 
 ## Installation
 1. Download the latest `ZenInstamine-X.X.X-X.X.jar` from the releases page
@@ -20,17 +20,19 @@ The compiled mod will be in `build/jar/`
 - Adjustable mining reach (up to 100 blocks)
 - Toggleable storage-box crafting access radius
 - Configurable movement-speed multiplier (10% – 1000%)
+- Configurable building-speed multiplier (10% – 2000%)
 - Item pickup "magnet" radius control
 - Optional combat damage boost
 - 10× ore, shard, and mineral drops
 
 ## In-Game Controls
 Use the `/instamine` chat command (available to all players):
-- `/instamine toggle <mining|range|craft|movement|pickup|combat|ore>` switches a feature
+- `/instamine toggle <mining|range|craft|movement|pickup|combat|build|ore>` switches a feature
 - `/instamine on|off <feature>` forces a state
 - `/instamine range set <blocks>` changes mining reach (1 block = 32 px, max 100 blocks)
 - `/instamine craft set <blocks>` adjusts storage crafting range (up to 200 blocks)
 - `/instamine movement set <percent>` sets the movement multiplier (10–1000)
+- `/instamine build set <percent>` sets the building/placement multiplier (10–2000)
 - `/instamine pickup set <blocks>` sets the pickup radius (1–200 blocks)
 - `/instamine status` shows the current configuration
 
@@ -44,6 +46,7 @@ This mod uses ByteBuddy method patching to modify:
 - Player attack range and damage (`ToolItem`)
 - Storage crafting radius (`CraftingStationContainer`)
 - Player movement speed modifier (`Mob.getSpeedModifier`)
+- Player building placement cooldown (`PlaceableItem.getAttackHandlerPlaceCooldown`)
 - Item pickup targeting and streaming range (`PickupEntity`)
 - Ore/shard loot tables (`Level.on*LootTableDropped`)
 

@@ -14,6 +14,7 @@ public final class FeatureRegistry {
         MovementFeature.bootstrap();
         PickupFeature.bootstrap();
         CombatFeature.bootstrap();
+        BuildingFeature.bootstrap();
         OreFeature.bootstrap();
     }
 }
