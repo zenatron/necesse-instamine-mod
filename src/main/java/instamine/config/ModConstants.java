@@ -17,7 +17,9 @@ public final class ModConstants {
     }
 
     public static final class Combat {
-        public static final int DAMAGE = 1_000_000;
+        public static final int DEFAULT_PERCENT = 1;
+        public static final int MIN_PERCENT = 1;
+        public static final int MAX_PERCENT = 10_000;
 
         private Combat() {}
     }
@@ -64,7 +66,9 @@ public final class ModConstants {
     }
 
     public static final class Ore {
-        public static final int DROP_MULTIPLIER = 10;
+        public static final int DEFAULT_MULTIPLIER = 10;
+        public static final int MIN_MULTIPLIER = 1;
+        public static final int MAX_MULTIPLIER = 100;
 
         private Ore() {}
     }

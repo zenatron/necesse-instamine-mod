@@ -23,35 +23,35 @@ public class InstamineToggleCommand extends ModularChatCommand {
 
     private enum Target {
         ALL,
-        MINING,
-        RANGE,
-        CRAFT,
-        MOVEMENT,
-        PICKUP,
-        COMBAT,
-        BUILD,
-        ORE;
+        MININGSPEED,
+        ATTACKRANGE,
+        CRAFTRANGE,
+        MOVEMENTSPEED,
+        PICKUPRANGE,
+        DAMAGE,
+        BUILDSPEED,
+        OREMULT;
 
         public List<FeatureToggle> toFeatures() {
             if (this == ALL) {
                 return Arrays.asList(FeatureToggle.values());
             }
             switch (this) {
-                case MINING:
+                case MININGSPEED:
                     return Collections.singletonList(FeatureToggle.MINING);
-                case RANGE:
+                case ATTACKRANGE:
                     return Collections.singletonList(FeatureToggle.RANGE);
-                case CRAFT:
+                case CRAFTRANGE:
                     return Collections.singletonList(FeatureToggle.CRAFT);
-                case MOVEMENT:
+                case MOVEMENTSPEED:
                     return Collections.singletonList(FeatureToggle.MOVEMENT);
-                case PICKUP:
+                case PICKUPRANGE:
                     return Collections.singletonList(FeatureToggle.PICKUP);
-                case COMBAT:
+                case DAMAGE:
                     return Collections.singletonList(FeatureToggle.COMBAT);
-                case BUILD:
+                case BUILDSPEED:
                     return Collections.singletonList(FeatureToggle.BUILD);
-                case ORE:
+                case OREMULT:
                     return Collections.singletonList(FeatureToggle.ORE);
                 default:
                     throw new IllegalArgumentException("Unhandled target: " + this);
@@ -128,7 +128,7 @@ public class InstamineToggleCommand extends ModularChatCommand {
             }
 
             switch (target) {
-                case RANGE: {
+                case ATTACKRANGE: {
                     int applied = ModSettings.setExtendedRangeBlocks(intArg);
                     if (applied != intArg) {
                         log.add("[Instamine] Requested range clamped to " + applied + " blocks (max " + ModSettings.getMaxRangeBlocks() + ")");
@@ -138,7 +138,7 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     InstamineMod.broadcast(server, message);
                     break;
                 }
-                case CRAFT: {
+                case CRAFTRANGE: {
                     int applied = ModSettings.setCraftRangeBlocks(intArg);
                     if (applied != intArg) {
                         log.add("[Instamine] Storage crafting range clamped to " + applied + " blocks (allowed " + ModSettings.getMinCraftRangeBlocks() + "-" + ModSettings.getMaxCraftRangeBlocks() + ")");
@@ -148,7 +148,7 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     InstamineMod.broadcast(server, message);
                     break;
                 }
-                case MOVEMENT: {
+                case MOVEMENTSPEED: {
                     int applied = ModSettings.setMovementSpeedPercent(intArg);
                     if (applied != intArg) {
                         log.add("[Instamine] Movement speed percent clamped to " + applied + "% (allowed " + ModSettings.getMinSpeedPercent() + "-" + ModSettings.getMaxSpeedPercent() + ")");
@@ -158,7 +158,7 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     InstamineMod.broadcast(server, message);
                     break;
                 }
-                case BUILD: {
+                case BUILDSPEED: {
                     int applied = ModSettings.setBuildSpeedPercent(intArg);
                     if (applied != intArg) {
                         log.add("[Instamine] Building speed percent clamped to " + applied + "% (allowed " + ModSettings.getMinBuildSpeedPercent() + "-" + ModSettings.getMaxBuildSpeedPercent() + ")");
@@ -168,12 +168,32 @@ public class InstamineToggleCommand extends ModularChatCommand {
                     InstamineMod.broadcast(server, message);
                     break;
                 }
-                case PICKUP: {
+                case PICKUPRANGE: {
                     int applied = ModSettings.setPickupRangeBlocks(intArg);
                     if (applied != intArg) {
                         log.add("[Instamine] Pickup range clamped to " + applied + " blocks (allowed " + ModSettings.getMinPickupRangeBlocks() + "-" + ModSettings.getMaxPickupRangeBlocks() + ")");
                     }
                     String message = "Pickup range set to " + ModSettings.formatPickupRangeValue();
+                    log.add("[Instamine] " + message);
+                    InstamineMod.broadcast(server, message);
+                    break;
+                }
+                case DAMAGE: {
+                    int applied = ModSettings.setCombatDamagePercent(intArg);
+                    if (applied != intArg) {
+                        log.add("[Instamine] Combat damage percent clamped to " + applied + "% (allowed " + ModSettings.getMinCombatDamagePercent() + "-" + ModSettings.getMaxCombatDamagePercent() + ")");
+                    }
+                    String message = "Combat damage multiplier set to " + ModSettings.formatCombatDamageValue();
+                    log.add("[Instamine] " + message);
+                    InstamineMod.broadcast(server, message);
+                    break;
+                }
+                case OREMULT: {
+                    int applied = ModSettings.setOreMultiplier(intArg);
+                    if (applied != intArg) {
+                        log.add("[Instamine] Ore multiplier clamped to " + applied + "x (allowed " + ModSettings.getMinOreMultiplier() + "-" + ModSettings.getMaxOreMultiplier() + ")");
+                    }
+                    String message = "Ore drop multiplier set to " + ModSettings.formatOreMultiplierValue();
                     log.add("[Instamine] " + message);
                     InstamineMod.broadcast(server, message);
                     break;
@@ -190,20 +210,26 @@ public class InstamineToggleCommand extends ModularChatCommand {
 
         if (valueProvided) {
             switch (target) {
-                case RANGE:
-                    log.add("[Instamine] Blocks value ignored. Use '/instamine range set <blocks>' to change range.");
+                case ATTACKRANGE:
+                    log.add("[Instamine] Blocks value ignored. Use '/instamine attackrange set <blocks>' to change range.");
                     break;
-                case CRAFT:
-                    log.add("[Instamine] Blocks value ignored. Use '/instamine craft set <blocks>' to change storage crafting range.");
+                case CRAFTRANGE:
+                    log.add("[Instamine] Blocks value ignored. Use '/instamine craftrange set <blocks>' to change storage crafting range.");
                     break;
-                case MOVEMENT:
-                    log.add("[Instamine] Percentage ignored. Use '/instamine movement set <percent>' to change movement speed.");
+                case MOVEMENTSPEED:
+                    log.add("[Instamine] Percentage ignored. Use '/instamine movementspeed set <percent>' to change movement speed.");
                     break;
-                case BUILD:
-                    log.add("[Instamine] Percentage ignored. Use '/instamine build set <percent>' to change building speed.");
+                case BUILDSPEED:
+                    log.add("[Instamine] Percentage ignored. Use '/instamine buildspeed set <percent>' to change building speed.");
                     break;
-                case PICKUP:
-                    log.add("[Instamine] Blocks value ignored. Use '/instamine pickup set <blocks>' to change pickup range.");
+                case PICKUPRANGE:
+                    log.add("[Instamine] Blocks value ignored. Use '/instamine pickuprange set <blocks>' to change pickup range.");
+                    break;
+                case DAMAGE:
+                    log.add("[Instamine] Percentage ignored. Use '/instamine damage set <percent>' to change combat damage.");
+                    break;
+                case OREMULT:
+                    log.add("[Instamine] Multiplier value ignored. Use '/instamine oremult set <multiplier>' to change ore drops.");
                     break;
                 default:
                     log.add("[Instamine] Numeric value ignored for this target.");

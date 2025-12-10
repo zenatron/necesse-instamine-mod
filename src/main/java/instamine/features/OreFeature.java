@@ -1,6 +1,5 @@
 package instamine.features;
 
-import instamine.config.ModConstants;
 import instamine.config.ModSettings;
 import instamine.config.ModSettings.FeatureToggle;
 import java.util.Collections;
@@ -21,12 +20,28 @@ import net.bytebuddy.asm.Advice;
 public final class OreFeature {
 
     private static final Set<String> SPECIAL_MINABLE_ITEM_IDS;
+    private static final Set<String> CRYSTAL_GEM_IDS;
 
     static {
         HashSet<String> ids = new HashSet<>();
         ids.add("upgradeshard");
         ids.add("alchemyshard");
         SPECIAL_MINABLE_ITEM_IDS = Collections.unmodifiableSet(ids);
+
+        HashSet<String> gems = new HashSet<>();
+        gems.add("sapphire");
+        gems.add("emerald");
+        gems.add("ruby");
+        gems.add("amethyst");
+        gems.add("topaz");
+        gems.add("quartz");
+        gems.add("lifequartz");
+        gems.add("obsidian");
+        gems.add("amber");
+        gems.add("frostshard");
+        gems.add("runestone");
+        gems.add("slimeum");
+        CRYSTAL_GEM_IDS = Collections.unmodifiableSet(gems);
     }
 
     private OreFeature() {}
@@ -65,13 +80,16 @@ public final class OreFeature {
     public static void multiplyOreDrops(List<InventoryItem> drops) {
         if (drops == null || drops.isEmpty()) return;
 
+        int multiplier = ModSettings.getOreMultiplier();
+        if (multiplier <= 1) return;
+
         for (InventoryItem drop : drops) {
             if (!isOreItem(drop)) continue;
 
             int amount = drop.getAmount();
             if (amount <= 0) continue;
 
-            long multiplied = (long) amount * ModConstants.Ore.DROP_MULTIPLIER;
+            long multiplied = (long) amount * multiplier;
             drop.setAmount(multiplied > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) multiplied);
         }
     }
@@ -79,12 +97,18 @@ public final class OreFeature {
     private static boolean isOreItem(InventoryItem drop) {
         if (drop == null || drop.item == null) return false;
 
+        String stringID = drop.item.getStringID();
+        
+        // Check for crystal gems first (quick lookup)
+        if (stringID != null && CRYSTAL_GEM_IDS.contains(stringID)) {
+            return true;
+        }
+
         ItemCategory category = ItemCategory.getItemsCategory(drop.item);
         if (category != null && (category.isOrHasParent("ore") || category.isOrHasParent("minerals"))) {
             return true;
         }
 
-        String stringID = drop.item.getStringID();
         return stringID != null && SPECIAL_MINABLE_ITEM_IDS.contains(stringID);
     }
 }

@@ -1,6 +1,5 @@
 package instamine.features;
 
-import instamine.config.ModConstants;
 import instamine.config.ModSettings;
 import instamine.config.ModSettings.FeatureToggle;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
@@ -8,12 +7,15 @@ import necesse.entity.mobs.Attacker;
 import necesse.entity.mobs.GameDamage;
 import necesse.entity.mobs.Mob;
 import necesse.entity.mobs.PlayerMob;
-import necesse.inventory.InventoryItem;
-import necesse.inventory.item.toolItem.ToolItem;
 import net.bytebuddy.asm.Advice;
 
 /**
- * Provides high combat damage output when enabled
+ * Provides combat damage multiplier when enabled.
+ * This mod only runs on machines where it's installed, so the multiplier
+ * only applies to players who have the mod.
+ * 
+ * Only patches getBuffedDamage which is used for both tooltip display and
+ * runtime damage calculation, avoiding double-application issues.
  */
 public final class CombatFeature {
 
@@ -23,24 +25,9 @@ public final class CombatFeature {
         // Class load hook for annotations
     }
 
-    @ModMethodPatch(target = ToolItem.class, name = "getAttackDamageValue", arguments = {InventoryItem.class, Attacker.class})
-    public static class AttackDamagePatch {
-        @Advice.OnMethodExit
-        public static void boostDamage(
-            @Advice.Argument(1) Attacker attacker,
-            @Advice.Return(readOnly = false) int damage
-        ) {
-            if (!ModSettings.isFeatureEnabled(FeatureToggle.COMBAT) || attacker == null) {
-                return;
-            }
-
-            PlayerMob playerOwner = attacker.getFirstPlayerOwner();
-            if (playerOwner != null) {
-                damage = ModConstants.Combat.DAMAGE;
-            }
-        }
-    }
-
+    /**
+     * Patches damage calculation used for both tooltips and runtime damage.
+     */
     @ModMethodPatch(target = GameDamage.class, name = "getBuffedDamage", arguments = {Attacker.class})
     public static class PlayerBuffedDamagePatch {
         @Advice.OnMethodExit
@@ -52,17 +39,18 @@ public final class CombatFeature {
                 return;
             }
 
+            // Only boost player damage, not NPC/mob damage
             Mob attackOwner = attacker.getAttackOwner();
             if (!(attackOwner instanceof PlayerMob)) {
                 return;
             }
 
-            PlayerMob playerOwner = attacker.getFirstPlayerOwner();
-            if (playerOwner == null) {
+            float multiplier = ModSettings.getCombatDamageMultiplier();
+            if (multiplier == 1.0f) {
                 return;
             }
 
-            damage = Math.max(damage, ModConstants.Combat.DAMAGE);
+            damage *= multiplier;
         }
     }
 }

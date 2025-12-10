@@ -44,6 +44,8 @@ public final class ModSettings {
     private static int movementSpeedPercent = ModConstants.Movement.DEFAULT_PERCENT;
     private static int pickupRangeBlocks = ModConstants.Pickup.DEFAULT_RANGE_BLOCKS;
     private static int buildSpeedPercent = ModConstants.Building.DEFAULT_PERCENT;
+    private static int combatDamagePercent = ModConstants.Combat.DEFAULT_PERCENT;
+    private static int oreMultiplier = ModConstants.Ore.DEFAULT_MULTIPLIER;
 
     private ModSettings() {}
 
@@ -266,6 +268,12 @@ public final class ModSettings {
             case PICKUP:
                 state.append(" (").append(formatPickupRangeValue()).append(")");
                 break;
+            case COMBAT:
+                state.append(" (").append(formatCombatDamageValue()).append(")");
+                break;
+            case ORE:
+                state.append(" (").append(formatOreMultiplierValue()).append(")");
+                break;
             default:
                 break;
         }
@@ -291,10 +299,70 @@ public final class ModSettings {
             case PICKUP:
                 message.append(" (").append(formatPickupRangeValue()).append(")");
                 break;
+            case COMBAT:
+                message.append(" (").append(formatCombatDamageValue()).append(")");
+                break;
+            case ORE:
+                message.append(" (").append(formatOreMultiplierValue()).append(")");
+                break;
             default:
                 break;
         }
         return message.toString();
+    }
+
+    // Combat damage settings
+    public static int getCombatDamageMultiplierRaw() {
+        return combatDamagePercent;
+    }
+
+    public static float getCombatDamageMultiplier() {
+        return combatBoostEnabled ? (float) combatDamagePercent : 1.0f;
+    }
+
+    public static int getMinCombatDamagePercent() {
+        return ModConstants.Combat.MIN_PERCENT;
+    }
+
+    public static int getMaxCombatDamagePercent() {
+        return ModConstants.Combat.MAX_PERCENT;
+    }
+
+    public static int setCombatDamagePercent(int multiplier) {
+        int clamped = clamp(multiplier, ModConstants.Combat.MIN_PERCENT, ModConstants.Combat.MAX_PERCENT);
+        combatDamagePercent = clamped;
+        return clamped;
+    }
+
+    public static String formatCombatDamageValue() {
+        return combatDamagePercent + "x";
+    }
+
+    // Ore multiplier settings
+    public static int getOreMultiplier() {
+        return oreMultiplierEnabled ? oreMultiplier : 1;
+    }
+
+    public static int getOreMultiplierRaw() {
+        return oreMultiplier;
+    }
+
+    public static int getMinOreMultiplier() {
+        return ModConstants.Ore.MIN_MULTIPLIER;
+    }
+
+    public static int getMaxOreMultiplier() {
+        return ModConstants.Ore.MAX_MULTIPLIER;
+    }
+
+    public static int setOreMultiplier(int multiplier) {
+        int clamped = clamp(multiplier, ModConstants.Ore.MIN_MULTIPLIER, ModConstants.Ore.MAX_MULTIPLIER);
+        oreMultiplier = clamped;
+        return clamped;
+    }
+
+    public static String formatOreMultiplierValue() {
+        return oreMultiplier + "x";
     }
 
     private static int clamp(int value, int min, int max) {
