@@ -28,7 +28,9 @@ project.ext.clientside = true
 //project.ext.modOptionalDependencies = ["optional.modid1", "optional.modid2"]
 
 // The path to the games install directory
-def gameDirectory = System.getProperty("user.home") + "/Library/Application Support/Steam/steamapps/common/Necesse/Necesse.app/Contents/Resources"
+// def gameDirectory = System.getProperty("user.home") + "/Library/Application Support/Steam/steamapps/common/Necesse/Necesse.app/Contents/Resources" // macOS
+def gameDirectory = System.getProperty("user.home") + "/.local/share/Steam/steamapps/common/Necesse" // Linux
+
 // =================================================
 // ========== DO NOT EDIT BELOW THIS LINE ==========
 // =================================================
