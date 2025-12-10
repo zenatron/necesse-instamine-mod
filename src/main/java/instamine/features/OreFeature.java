@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import necesse.engine.GameEventListener;
+import necesse.engine.GameEvents;
+import necesse.engine.events.loot.MobLootTableDropsEvent;
 import necesse.engine.events.loot.ObjectLootTableDropsEvent;
 import necesse.engine.events.loot.TileLootTableDropsEvent;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
@@ -15,7 +18,7 @@ import necesse.inventory.item.ItemCategory;
 import net.bytebuddy.asm.Advice;
 
 /**
- * Multiplies ore drops from tiles and objects
+ * Multiplies ore drops from tiles, objects, and mobs
  */
 public final class OreFeature {
 
@@ -47,7 +50,17 @@ public final class OreFeature {
     private OreFeature() {}
 
     public static void bootstrap() {
-        // Class load hook for annotations.
+        // Class load hook for annotations
+        // Also register event listener for mob drops
+        GameEvents.addListener(MobLootTableDropsEvent.class, new GameEventListener<MobLootTableDropsEvent>() {
+            @Override
+            public void onEvent(MobLootTableDropsEvent event) {
+                if (!ModSettings.isFeatureEnabled(FeatureToggle.ORE) || event == null || event.drops == null) {
+                    return;
+                }
+                multiplyOreDrops(event.drops);
+            }
+        });
     }
 
     @ModMethodPatch(target = Level.class, name = "onTileLootTableDropped", arguments = {TileLootTableDropsEvent.class})
